@@ -1,0 +1,69 @@
+name: haskell-stackage-top
+version: 0.0.1
+inherits: ondrapelech/haskell-stackage@3.0.3
+description: wercker box for the GHC 7.8 and the latest LTS Stackage snapshot, with 250 most popular packages preinstalled
+type: main
+platform: ubuntu@12.04
+keywords:
+  - haskell
+  - stackage
+  - ubuntu
+  - 14.10
+script: |
+  STACKAGE_PACKAGES="text warp attoparsec lens aeson cabal-install persistent conduit Cabal network wai-extra parsec HTTP yesod-core blaze-html hspec conduit-extra yesod-auth xml-conduit zlib blaze-markup hlint yesod pandoc tagged persistent-template http-client QuickCheck shake system-filepath streaming-commons ghc-mod contravariant classy-prelude resourcet highlighting-kate http-conduit hscolour texmath wai-app-static yesod-bin hashable semigroupoids shelly JuicyPixels profunctors tls yesod-form yaml scientific snap-server MonadRandom optparse-applicative transformers-compat authenticate transformers semigroups vector reflection either monad-control persistent-sqlite shakespeare case-insensitive haskell-src-exts iproute binary comonad system-fileio hakyll file-embed primitive free persistent-postgresql unordered-containers blaze-builder hspec-discover syb network-uri simple-sendfile cereal hspec-core old-time basic-prelude mtl snap adjunctions fast-logger pointed cookie OpenGLRaw async esqueleto cpphs snap-core bifunctors wai hoogle mime-mail utf8-string"
+  
+  function cabal_install_insist { until cabal install -j "$@" ; do echo -e "\033[1mcabal install failed, trying again...\033[m" ; done }
+  
+  
+  echo -e "\033[1m###  Upgrading system packages...  ###########################################\033[m"
+  sudo aptitude update
+  sudo aptitude full-upgrade -y
+  
+  
+  echo -e "\033[1m###  Installing Stackage packages...  ########################################\033[m"
+  cabal_install_insist $STACKAGE_PACKAGES
+  
+  
+  echo -e "\033[1m###  Final check  ############################################################\033[m"
+  which ghc
+  ghc --version
+  which cabal
+  cabal --version
+  ghc-pkg list
+  echo
+  
+  
+  echo -e "\033[1m###  FINISHED  ###############################################################\033[m"
+
+
+box-detect:
+  priority: 1000
+  version :
+  detect:
+    - files:
+      - '*.cabal'
+
+default-build:
+  haskell:
+    priority: 50
+    detect:
+      - default: true
+    text-to-append: |
+      # Build definition
+      build:
+        # The steps that will be executed on build
+        steps:
+          - script:
+              name: install dependencies
+              code: |
+                cabal install --enable-tests --only-dependencies
+          - script:
+              name: build package
+              code: |
+                cabal configure --enable-tests
+                cabal build
+          - script:
+              name: test package
+              code: |
+                cabal test --show-details=always
+
