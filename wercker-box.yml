@@ -1,6 +1,6 @@
 name: haskell-stackage-top
-version: 0.0.1
-inherits: ondrapelech/haskell-stackage@3.0.3
+version: 1.0.0
+inherits: ondrapelech/haskell-stackage@3.0.4
 description: wercker box for the GHC 7.8 and the latest LTS Stackage snapshot, with 250 most popular packages preinstalled
 type: main
 platform: ubuntu@12.04
